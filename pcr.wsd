@@ -1,0 +1,68 @@
+@startuml PCR_PC
+title Peripheral channel error reporting
+note over espi_drv
+espi_drv notices
+error situation
+end rnote
+espi_drv -> espi_srv : error event
+note over espi_srv
+espi_srv updates
+PCERR_SLVx
+register
+end note
+espi_srv --> BIOS : SERR/SMI
+espi_srv -> BIOS : BIOS reads PCERR_SLVx
+BIOS -> espi_srv : BIOS clears PCERR_SLVx
+@enduml
+
+@startuml PCR_FC
+title Flash channel error reporting
+note over espi_drv
+espi_drv notices
+error situation
+end rnote
+espi_drv -> espi_srv : error event
+note over espi_srv
+espi_srv updates
+FCERR_SLV0
+register
+end note
+espi_srv --> BIOS : SERR/SMI
+espi_srv -> BIOS : BIOS reads FCERR_SLV0
+BIOS -> espi_srv : BIOS clears FCERR_SLV0
+@enduml
+
+@startuml PCR VW
+title VW channel error reporting
+note over espi_srv
+espi service 
+notices
+error situation
+end rnote
+note over espi_srv
+espi_srv updates
+VWERR_SLVx
+register
+end note
+espi_srv --> BIOS : SERR/SMI
+espi_srv -> BIOS : BIOS reads VWERR_SLVx
+BIOS -> espi_srv : BIOS clears VWERR_SLVx
+@enduml
+
+@startuml PCR LNK
+title HW Link layer error reporting
+note over espi_hw
+espi link layer 
+notices
+error situation
+end rnote
+espi_hw -> espi_srv : espi_link_err_int event
+note over espi_srv
+espi_srv updates
+LNKERR_SLVx
+register
+end note
+espi_srv --> BIOS : SERR/SMI
+espi_srv -> BIOS : BIOS reads LNKERR_SLVx
+BIOS -> espi_srv : BIOS clears LNKERR_SLVx
+@enduml

@@ -1,0 +1,17 @@
+@startuml
+title FLASH service initialization
+start
+:iosf ranges initialization;
+:registers initialization;
+partition "FLASH device discovery" {
+:FLASH device discovery;
+if (flash mode) then (Direct)
+    :FLASH chips initialization;
+else (eDAF)
+
+endif
+:FLASH descriptor validation;
+}
+end
+
+@enduml

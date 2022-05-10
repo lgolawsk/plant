@@ -1,0 +1,24 @@
+@startuml BBS
+title BBS
+skinparam componentStyle rectangle
+[Server CPU SOC] <-> [HOST FLASH (Flash Descriptor)] : SPI
+[Server CPU SOC] <--> [BMC] : eSPI (LPC channel)
+[BMC] <-> [HOST FLASH (BIOS region)] : SPI
+[BMC] <--> [BMC FLASH] : SPI
+@enduml
+
+@startuml Direct_FLASH
+title Direct FLASH
+skinparam componentStyle rectangle
+[Server CPU SOC] <-> [HOST FLASH (Flash Descriptor, BIOS, ...)] : SPI
+[Server CPU SOC] <--> [BMC] : eSPI
+[BMC] <--> [BMC FLASH] : SPI
+@enduml
+
+@startuml EDAF
+title eDAF
+skinparam componentStyle rectangle
+[Server CPU SOC] <--> [BMC] : eSPI (Flash channel)
+[BMC] <-> [HOST FLASH (Flash Descriptor, BIOS, ...)] : SPI
+[BMC] <--> [BMC FLASH] : SPI
+@enduml
