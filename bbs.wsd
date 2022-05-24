@@ -1,0 +1,99 @@
+@startuml
+skinparam componentStyle rectangle
+
+
+node flash_srv {
+    [flash space]
+    [bios space\nbios legacy space]
+}
+
+node espi_srv {
+
+}
+
+node espi_lpc_drv {
+
+}
+
+node storage_drv {
+    [spi_drv]
+    [espi_flash_drv]
+}
+
+[flash space] -- storage_drv
+storage_drv -- espi_flash_drv : dafda
+storage_drv -- spi_drv
+[bios space\nbios legacy space] -up- espi_lpc_drv
+[bios space\nbios legacy space] -- storage_drv
+flash_srv -left- espi_srv : dasfa
+@enduml
+
+@startuml
+skinparam componentStyle rectangle
+
+
+node flash_srv {
+    [flash space]
+    [bios space\nbios legacy space]
+}
+
+node storage_drv {
+    
+    saf --[spi_drv]
+    saf -- [espi_flash_drv]
+}
+
+[flash space] -- saf
+
+[bios space\nbios legacy space] -- saf
+@enduml
+
+@startuml
+skinparam componentStyle rectangle
+
+rectangle storage_drv {
+    [spi_drv]
+    [espi_flash_drv]
+}
+
+rectangle flash_srv {
+    [flash space]
+    [BIOS space\nLEGACY BIOS space]
+}
+
+
+flash_srv -- storage_drv
+
+@enduml
+
+@startuml
+title BBS=0
+skinparam componentStyle rectangle
+[flash service] -- [storage_flash dirver] : FLASH space,\nBIOS space,\nlegacy BIOS space\n initiated FLASH operations
+[storage_flash dirver] -- [spi_flash driver] : direct mode
+[storage_flash dirver] -- [espi_flash driver] : eDAF mode
+
+@enduml
+
+@startuml
+title BBS=1
+skinparam componentStyle rectangle
+[espi service] - [flash service] : espi register\nupdates
+[flash service] -- [storage_flash dirver] : FLASH space\ninitiated operations
+[flash service] -- [espi_lpc driver] : BIOS space,\nlegacy BIOS space\ninitiated operations
+
+[storage_flash dirver] -- [spi_flash driver] : direct mode
+[storage_flash dirver] -- [espi_flash driver] : eDAF mode
+
+@enduml
+
+@startuml
+title modules communication
+skinparam componentStyle rectangle
+[espi service] .left. [flash service] : some BBS=1 \nrelated registers
+[espi service] -- [espi driver\n(LPC,VW)]
+[espi service] -- [acpi io service]
+[espi service] -- [vdm service]
+[espi service] -- [vgpio service]
+
+@enduml
