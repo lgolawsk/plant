@@ -23,14 +23,8 @@ left to right direction
 [espi_legacy_com_io_read]-->[uart_srv_legacy_com_read]
 [espi_legacy_com_io_write]-->[espi_io_write_common]
 [espi_legacy_com_io_write]-->[uart_srv_legacy_com_write]
-[espi_fixed_io_read_common]-->[espi_fixed_io_read_shadow]
-[espi_io_read_common]-->[espi_fixed_io_read_shadow]
-[espi_fixed_io_write_common]-->[espi_fixed_io_write_shadow]
-[espi_io_write_common]-->[espi_fixed_io_write_shadow]
-@enduml
-
-@startuml
-function ole
-ole->bla
-bla -> blabla
+[espi_fixed_io_read_common]->[espi_fixed_io_read_shadow]
+[espi_fixed_io_read_common]-->[espi_io_read_common]
+[espi_fixed_io_write_common]->[espi_fixed_io_write_shadow]
+[espi_fixed_io_write_common]-->[espi_io_write_common]
 @enduml

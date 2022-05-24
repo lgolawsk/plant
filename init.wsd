@@ -15,3 +15,19 @@ endif
 end
 
 @enduml
+
+@startuml
+title ESPI service initialization
+start
+:iosf ranges initialization\ncfg, io, mem;
+partition "registers initialization" {
+:reset_internal_sys_events_state;
+:reset_pcr_space;
+:espi_srv_softstrap_based_init\n(slave disabled at ss is not initialized later);
+:cfg reg initialitation;
+:vw channel driver initialization;
+:update BMC config complete at TREG; 
+}
+end
+
+@enduml
