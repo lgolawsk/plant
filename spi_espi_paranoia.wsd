@@ -1,0 +1,56 @@
+@startuml flash_erase
+title flash_erase (flash_write almost the same)
+participant flash_service as fs
+participant storage_driver as st_d
+participant spi_drv as sp_d
+participant spi_hw as sp_hw
+participant espi_drv as es_d
+participant espi_hw as es_hw
+
+fs -> st_d : storage_flash_sector_erase/\nstorage_flash_block_erase
+st_d -> sp_d : spi_flash_drv_erase
+loop 10sec
+sp_d -> sp_hw : spi_flash_drv_poll_chip_busy_by_chip_id \n(reads FLASH status reg untill specified \ntimeout happens, currently default_tmo 10sec !!!)
+end
+sp_d -> sp_hw : spi_flash_drv_write_enable
+sp_d -> sp_hw : spi_drv_write with erase opcode
+st_d <-- sp_d : status
+fs <-- st_d : status
+
+fs -> st_d : storage_flash_sector_erase/\nstorage_flash_block_erase
+st_d ->es_d : espi_saf_erase
+loop 10sec
+es_d -> es_hw : espi_saf_poll_chip_busy \n(checks if previous \nFlash Ch wr/rd operation is in progress \n(based on g_erase_write_counter), \nin case of operation in progress checks \nfor completion (currently default_tmo 10sec !!!)
+end
+loop 10sec
+es_d -> es_hw : espi_saf_is_slave_np_buffer_free \n untill NP queue not empty
+end
+es_d -> es_hw : spi_flash_drv_write_enable
+es_d -> es_hw : espi_saf_send with erase opcode
+es_d <-- es_hw : espi_fc_np_handle_response <font color=red><b>(TODO)
+st_d <-- es_d : status
+fs <-- st_d : status
+
+@enduml
+
+@startuml flash_read
+title flash_read (HW_SEQ or memory based)
+participant flash_service as fs
+participant storage_driver as st_d
+participant spi_drv as sp_d
+participant spi_hw as sp_hw
+participant espi_drv as es_d
+participant espi_hw as es_hw
+
+fs -> st_d : storage_flash_read
+st_d -> sp_d : spi_flash_drv_read
+'st_d -> sp_d : espi_saf_read
+loop 10sec
+note left : (it is a bit more complicated in case \nof read which breaks cs0 boundary)
+sp_d -> sp_hw : spi_flash_drv_poll_chip_busy_by_chip_id \n(reads FLASH status reg untill specified \ntimeout happens, currently default_tmo 10sec !!!)
+end
+sp_d -> sp_hw : spi_flash_drv_read_chip
+sp_d <-- sp_hw : status and data
+st_d <-- sp_d : status and data
+fs <-- st_d : status and data
+@enduml
