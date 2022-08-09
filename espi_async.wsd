@@ -1,0 +1,87 @@
+@startuml espi_lpc_send_p_write
+title espi_lpc_send_p_write
+participant espi_service as es
+participant espi_drv as ed
+participant espi_hw as eh
+
+es -> ed : espi_lpc_send_p_write
+group timeout [10sec (ch lpc ready)]
+ed -> eh : espi_cfg_poll_on_channel_ready
+end
+group timeout [10sec (ch lpc pc buffer free)]
+ed ->eh : espi_lpc_is_slave_pc_buffer_free
+end
+ed ->eh : espi_lpc_store_tx_data
+group timeout [10sec (until send not finished)]
+ed ->eh : espi_lpc_send
+end
+ed ->eh : espi_lpc_p_handle_response \n(can publish error event)
+ed <-- eh : status
+es <-- ed : status
+@enduml
+
+@startuml espi_lpc_send_np_write
+title espi_lpc_send_np_write
+participant espi_service as es
+participant espi_drv as ed
+participant espi_hw as eh
+
+es -> ed : espi_lpc_send_np_write
+group timeout [10sec (ch lpc ready)]
+ed -> eh : espi_cfg_poll_on_channel_ready
+end
+group timeout [10sec (ch lpc np buffer free)]
+ed ->eh : espi_lpc_is_slave_np_buffer_free
+end
+ed ->eh : espi_lpc_store_tx_data
+group timeout [10sec (until send not finished)]
+ed ->eh : espi_lpc_send
+end
+ed ->eh : espi_lpc_np_handle_response \n(can publish error event, no timeout, \nin case of not response just pending \nstarus returned)
+ed <-- eh : status
+es <-- ed : status
+@enduml
+
+@startuml espi_lpc_send_np_read
+title espi_lpc_send_np_read
+participant espi_service as es
+participant espi_drv as ed
+participant espi_hw as eh
+
+es -> ed : espi_lpc_send_np_read
+group timeout [10sec (ch lpc ready)]
+ed -> eh : espi_cfg_poll_on_channel_ready
+end
+group timeout [10sec (ch lpc np buffer free)]
+ed ->eh : espi_lpc_is_slave_np_buffer_free
+end
+ed ->eh : espi_lpc_store_tx_data
+group timeout [10sec (until send not finished)]
+ed ->eh : espi_lpc_send
+end
+ed ->eh : espi_lpc_np_handle_response \n(can publish error event, no timeout, \nin case of not response just pending \nstarus returned)
+ed <-- eh : status nad data
+es <-- ed : status and data
+@enduml
+
+@startuml espi_lpc_send_np_read_async
+title espi_lpc_send_np_read_async
+participant espi_service as es
+participant espi_drv as ed
+participant espi_hw as eh
+
+es -> ed : espi_lpc_send_np_read
+group timeout [10sec (ch lpc ready)]
+ed -> eh : espi_cfg_poll_on_channel_ready
+end
+group timeout [10sec (ch lpc np buffer free)]
+ed ->eh : espi_lpc_is_slave_np_buffer_free
+end
+ed ->eh : espi_lpc_store_tx_data
+group timeout [10sec (until send not finished)]
+ed ->eh : espi_lpc_send
+end
+ed ->eh : espi_lpc_np_handle_response \n(can publish error event, no timeout, \nin case of not response just pending \nstarus returned)
+ed <-- eh : status nad data
+es <-- ed : status and data
+@enduml
