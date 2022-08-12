@@ -107,6 +107,11 @@ espi_drv -> espi_hw : espi_lpc_np_handle_response
 espi_drv <- espi_hw : RESPONSE STATUS_PENDING
 espi_srv <- espi_drv : status_pending
 tlp <- espi_srv : status_pending
+note left
+TLP finishes service handler execution
+internal ctx information about pending 
+completion stored
+end note
 end
 ... processor can handle other non-iosf_p traffic ...
 group completion
