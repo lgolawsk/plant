@@ -1,0 +1,89 @@
+@startuml tlp_only
+skinparam componentStyle rectangle
+package "TLP only" {
+component TLP_Decoder_Encoder as TLP_DE
+component TLP_CFG
+component TLP_IO
+component TLP_MEM
+component TLP_LT
+component TLP_MSG
+component TLP_SD
+}
+component services as services
+component drivers
+component interfaces
+
+TLP_DE <--> TLP_CFG
+TLP_DE <--> TLP_IO
+TLP_DE <--> TLP_MEM
+TLP_DE <--> TLP_LT
+TLP_DE <--> TLP_MSG
+TLP_DE <--> TLP_SD
+TLP_CFG <--> services
+TLP_IO <--> services
+TLP_MEM <--> services
+TLP_LT <--> services
+TLP_MSG <--> services
+services <--> drivers
+drivers <--> interfaces
+@enduml
+
+@startuml tlp_mock
+skinparam componentStyle rectangle
+package "TLP with mock service" {
+component TLP_Decoder_Encoder as TLP_DE
+component TLP_CFG
+component TLP_IO
+component TLP_MEM
+component TLP_LT
+component TLP_MSG
+component TLP_SD
+component service_mock as services
+}
+component drivers
+component interfaces
+
+TLP_DE <--> TLP_CFG
+TLP_DE <--> TLP_IO
+TLP_DE <--> TLP_MEM
+TLP_DE <--> TLP_LT
+TLP_DE <--> TLP_MSG
+TLP_DE <--> TLP_SD
+TLP_CFG <--> services
+TLP_IO <--> services
+TLP_MEM <--> services
+TLP_LT <--> services
+TLP_MSG <--> services
+services <--> drivers
+drivers <--> interfaces
+@enduml
+
+@startuml tlp_e2e
+skinparam componentStyle rectangle
+package "TLP with real services" {
+component TLP_Decoder_Encoder as TLP_DE
+component TLP_CFG
+component TLP_IO
+component TLP_MEM
+component TLP_LT
+component TLP_MSG
+component TLP_SD
+component services as services
+component drivers
+}
+component interfaces
+
+TLP_DE <--> TLP_CFG
+TLP_DE <--> TLP_IO
+TLP_DE <--> TLP_MEM
+TLP_DE <--> TLP_LT
+TLP_DE <--> TLP_MSG
+TLP_DE <--> TLP_SD
+TLP_CFG <--> services
+TLP_IO <--> services
+TLP_MEM <--> services
+TLP_LT <--> services
+TLP_MSG <--> services
+services <--> drivers
+drivers <--> interfaces
+@enduml
