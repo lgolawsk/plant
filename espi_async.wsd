@@ -147,61 +147,150 @@ iosf_p -> tlp :
 iosf_p <[#Red]- tlp : interrupt disable!!!
 tlp -> espi_srv : espi_io_read_dev_0\n(TLP handler needs reimplementation)
 note left
-TLP needs to store some tlp tx
-data needed later during compose
-of tlp rx
+    TLP needs to store some tlp tx
+    data needed later during compose
+    of tlp rx
 end note
 activate tlp #Yellow
 {int_begin} espi_srv -> espi_srv : espi_io_read_common
 
+activate espi_srv
 espi_srv -> espi_drv : espi_lpc_send_np_read
 group timeout [10sec (ch lpc ready)]
-espi_drv -> espi_hw : espi_cfg_poll_on_channel_ready
+    espi_drv -> espi_hw : espi_cfg_poll_on_channel_ready
 end
 group timeout [10sec (ch lpc np buffer free)]
-espi_drv ->espi_hw : espi_lpc_is_slave_np_buffer_free
+    espi_drv ->espi_hw : espi_lpc_is_slave_np_buffer_free
+    ' note left
+    '     needs to double check but in scenario with one driver
+    '     we can expect that np buffer is free
+    ' end note
 end
 'espi_drv ->espi_hw : espi_lpc_store_tx_data
 group timeout [10sec (until send not finished)]
-espi_drv ->espi_hw : espi_lpc_send
+    espi_drv ->espi_hw : espi_lpc_send
 end
 espi_drv -> espi_hw : espi_lpc_np_handle_response
-alt response_available
-group #LightBlue completion [potential to handle separately based on pc buffer status]
-group timeout [10sec (until pc buffer available)]
-espi_drv -> espi_hw : check pc buffer status
-espi_drv <- espi_hw :pc buffer status
-end
-espi_drv -> espi_hw : espi_lpc_send (ESPI_PLCC_TX_CMD_GET_PC)
-espi_drv -> espi_hw : espi_lpc_np_handle_response \n(can publish error event, no timeout, \nin case of not response just pending \nstarus returned)
-espi_drv <-> espi_hw : espi_lpc_load_rx_data
-espi_srv <-- espi_drv : status and data
-tlp <-- espi_srv : status and data
-iosf_p <-- tlp : completion
-end
+alt ACCEPT
+    espi_drv <- espi_hw : (ACCEPT) RESPONSE STATUS_SUCCESS
 
-else response pending
-espi_drv <- espi_hw : RESPONSE STATUS_PENDING
-espi_srv <- espi_drv : status_pending
-tlp <- espi_srv : status_pending
-... processor can handle other non-iosf_p traffic ...
-group completion
-espi_srv <-- espi_hw : interrupt EVT pc buffer available 
-espi_srv -> espi_drv : get_pc_buffer data
-espi_drv -> espi_hw : receive data from pc buffer
-espi_drv <- espi_hw : pc buffer data
-espi_srv <- espi_drv : pc_buffer data
-{int_end} tlp <- espi_srv : espi_cpl_to_tlp
+    group #LightBlue completion
+        ' group timeout [10sec (until pc buffer available)]
+        '     espi_drv -> espi_hw : check pc buffer status
+        '     espi_drv <- espi_hw :pc buffer status
+        ' end
+        ' espi_drv -> espi_hw : espi_lpc_send (ESPI_PLCC_TX_CMD_GET_PC)
+        ' espi_drv -> espi_hw : espi_lpc_np_handle_response \n(can publish error event, no timeout, \nin case of not response just pending \nstarus returned)
+        espi_drv <-- espi_hw : espi_lpc_load_rx_data
+        espi_srv <-- espi_drv : status and data
+        tlp <-- espi_srv : status and data
+        iosf_p <-- tlp : completion
+    end
+
+else DEFER
+    espi_drv <- espi_hw : (DEFER) RESPONSE STATUS_PENDING
+    espi_srv <- espi_drv : status_pending
+    tlp <- espi_srv : status_pending
+    ... processor can handle other non-iosf_p traffic ...
+    group completion
+        espi_drv <-- espi_hw : interrupt EVT pc buffer available 
+        espi_drv -> espi_hw : receive data from pc buffer
+        espi_drv <- espi_hw : espi_lpc_load_rx_data
+        espi_srv <-- espi_drv : EVT pc_buffer data available
+        espi_srv -> espi_drv : get_pc_data
+        espi_srv <- espi_drv : pc_data
+deactivate espi_srv
+
+        tlp <- espi_srv : espi_cpl_to_tlp
+        note left
+            TLP prepares COMPLETION
+            based on data from TLP request
+            end data from espi
+        end note
+        iosf_p <-- tlp : completion
+        
+        deactivate tlp
+    end
+end
+        iosf_p <[#Red]- tlp : interrupt enable!!!
+@enduml
+
+@startuml espi_lpc_send_np_read_async_service
+title espi_lpc_send_np_read_async_srv
+participant iosf_p
+participant tlp
+participant espi_srv
+participant espi_drv
+participant espi_hw
+
+iosf_p -> tlp :
+iosf_p <[#Red]- tlp : interrupt disable!!!
+tlp -> espi_srv : espi_io_read_dev_0\n(TLP handler needs reimplementation)
 note left
-TLP prepares COMPLETION
-based on data from TLP request
-end data from espi
+    TLP needs to store some tlp tx
+    data needed later during compose
+    of tlp rx
 end note
-iosf_p <- tlp : completion
-iosf_p <[#Red]- tlp : interrupt enable!!!
+activate tlp #Yellow
+{int_begin} espi_srv -> espi_srv : espi_io_read_common
 
-{int_begin} <-> {int_end} : dafdas
-deactivate tlp
+activate espi_srv
+espi_srv -> espi_drv : espi_lpc_send_np_read
+group timeout [10sec (ch lpc ready)]
+    espi_drv -> espi_hw : espi_cfg_poll_on_channel_ready
 end
+group timeout [10sec (ch lpc np buffer free)]
+    espi_drv ->espi_hw : espi_lpc_is_slave_np_buffer_free
+    ' note left
+    '     needs to double check but in scenario with one driver
+    '     we can expect that np buffer is free
+    ' end note
 end
+'espi_drv ->espi_hw : espi_lpc_store_tx_data
+group timeout [10sec (until send not finished)]
+    espi_drv ->espi_hw : espi_lpc_send
+end
+espi_drv -> espi_hw : espi_lpc_np_handle_response
+alt ACCEPT
+    espi_drv <- espi_hw : (ACCEPT) RESPONSE STATUS_SUCCESS
+
+    group #LightBlue completion
+        ' group timeout [10sec (until pc buffer available)]
+        '     espi_drv -> espi_hw : check pc buffer status
+        '     espi_drv <- espi_hw :pc buffer status
+        ' end
+        ' espi_drv -> espi_hw : espi_lpc_send (ESPI_PLCC_TX_CMD_GET_PC)
+        ' espi_drv -> espi_hw : espi_lpc_np_handle_response \n(can publish error event, no timeout, \nin case of not response just pending \nstarus returned)
+        espi_drv <-- espi_hw : espi_lpc_load_rx_data
+        espi_srv <-- espi_drv : status and data
+        tlp <-- espi_srv : status and data
+        iosf_p <-- tlp : completion
+    end
+
+else DEFER
+    espi_drv <- espi_hw : (DEFER) RESPONSE STATUS_PENDING
+    espi_srv <- espi_drv : status_pending
+    tlp <- espi_srv : status_pending
+    ... processor can handle other non-iosf_p traffic ...
+    group completion
+        espi_srv <-- espi_hw : interrupt EVT pc buffer available (boot_logic_ev_hdlr_espi_lpc_int) 
+        espi_srv -> espi_hw : receive data from pc buffer
+        espi_drv <- espi_hw : espi_lpc_load_rx_data
+        espi_srv <-- espi_drv : EVT pc_buffer data available
+        espi_srv -> espi_drv : get_pc_data
+        espi_srv <- espi_drv : pc_data
+deactivate espi_srv
+
+        tlp <- espi_srv : espi_cpl_to_tlp
+        note left
+            TLP prepares COMPLETION
+            based on data from TLP request
+            end data from espi
+        end note
+        iosf_p <-- tlp : completion
+        
+        deactivate tlp
+    end
+end
+        iosf_p <[#Red]- tlp : interrupt enable!!!
 @enduml
