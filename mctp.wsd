@@ -1,0 +1,11 @@
+@startuml tst
+'activate PMT
+PMT -> IE_LOADER: Checking IE_LOADER Svn
+'activate IE_LOADER
+'deactivate IE_RBE
+IE_LOADER -> IE_HSM: Checking IE_HSM Svn
+'activate IE_HSM
+IE_LOADER -> IBB: Checking IBB Svn
+'activate IBB
+'deactivate IE_LOADER
+@enduml

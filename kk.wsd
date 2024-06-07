@@ -1,0 +1,193 @@
+@startuml
+
+group Svn Update
+HOST->IE_IFSI: HECI SVN Update Req
+box "IE"
+participant IE_IFSI
+participant IE_RBE
+endbox
+activate HOST
+activate IE_IFSI
+IE_IFSI -> FLASH: FLASH TAG STORE
+activate FLASH
+IE_IFSI-->HOST: HECI SVN Update Resp
+deactivate FLASH
+deactivate IE_IFSI
+HOST->HOST: global reset
+deactivate HOST
+
+activate ME_RBE
+activate IE_RBE
+IE_RBE->FLASH: FLASH TAG READ
+activate FLASH
+FLASH-->IE_RBE: FLASH TAG READ
+deactivate FLASH
+IE_RBE -> ME_RBE: IPC SVN Commit Req
+ME_RBE --> IE_RBE: IPC SVN Commit Resp
+deactivate IE_RBE
+deactivate ME_RBE
+IE_RBE --> IE_IFSI
+activate IE_IFSI
+IE_IFSI->FLASH:FLASH TAG DELETE
+activate FLASH
+FLASH-->IE_IFSI:FLASH TAG DELETE
+deactivate FLASH
+deactivate IE_IFSI
+end
+
+group Svn Verification
+activate ME_RBE
+activate IE_RBE
+IE_RBE->FLASH: read SVN TAG
+activate FLASH
+FLASH-->IE_RBE
+deactivate FLASH
+IE_RBE->FLASH: read ie_svn from manifest
+activate FLASH
+FLASH-->IE_RBE
+deactivate FLASH
+IE_RBE->ME_RBE: get SVN req
+ME_RBE-->IE_RBE: get SVN resp
+deactivate IE_RBE
+deactivate ME_RBE
+end
+@enduml
+
+@startuml
+activate IE_RBE
+IE_RBE -> IE_LOADER: Checking IE_LOADER Svn
+activate IE_LOADER
+deactivate IE_RBE
+IE_LOADER -> IE_HSM: Checking IE_HSM Svn
+activate IE_HSM
+IE_LOADER -> IBB: Checking IBB Svn
+activate IBB
+deactivate IE_LOADER
+@enduml
+
+
+@startuml
+(*) --> RBE receives HW_SVN from ME
+if "FW_SVN >= HW_SVN"
+--> [yes] "Check if SVN_list extension found" 
+	if ""
+	--> [yes] "load and parse SVN list"
+	else
+	--> [no] (*) 
+	endif
+else
+--> [no] "HALT and report error"
+endif
+
+
+@enduml
+
+@startuml
+start
+:RBE read HW_SVN via IPC from ME;
+if (HW_SVN <= FW_SVN) then (yes)
+	:Continue Boot;
+else (no) 
+	:Report Error and Halt;
+end
+endif
+
+if (Check if SVN list manifest extension exist) then (yes)
+else (no)
+	:Boot FW without checking modules SVN;
+stop
+endif
+
+partition module_0 {
+:Get SVN 0 value from SVN extension;
+
+if (extension_0_SVN found) then (yes)
+else (no)
+	:Report Error and Halt;
+end
+endif
+
+if(extension_0_SVN <= module_0_SVN) then (yes)
+	:Load Module 0;
+	-[#black,dashed]->
+else (no)
+	:Report Error and Halt;
+end
+endif
+}
+partition module_N {
+:Get SVN N value from SVN extension;
+if (extension_N_SVN found) then (yes)
+else (no)
+	:Report Error and Halt;
+end
+endif
+if(extension_N_SVN <= module_N_SVN) then (yes)
+	:Load Module N;
+else (no)
+	:Report Error and Halt;
+end
+endif
+}
+stop
+@enduml
+
+@startuml
+'start
+(*) --> "RBE read HW_SVN via IPC from ME"
+if "HW_SVN <= FW_SVN" then
+	-->[true] "Continue Boot"
+else 
+	-->[false] "Report Error and Halt"
+'end
+endif
+
+"Continue Boot" --> "Check if SVN list manifest extension exist"
+if "dd" then
+	-->[true] "Continue Boot 2"
+else
+	-->[false] "Boot FW without checking modules SVN"
+'stop
+endif
+
+partition module_0 {
+"Continue Boot 2" --> "Get SVN 0 value from SVN extension"
+
+if "extension_0_SVN found" then
+	-->[true] "Contine Boot 3"
+else
+	-->[false] "Report Error and Halt 2"
+'end
+endif
+
+"Contine Boot 3" --> "extension_0_SVN <= module_0_SVN"
+if "extension_0_SVN <= module_0_SVN" then
+	-->[true] "Load Module 0"
+	'-[#black,dashed]->
+else 
+	-->[false] "Report Error and Halt 3"
+'end
+endif
+}
+partition module_N {
+"Load Module 0" --> "Get SVN N value from SVN extension"
+
+if "extension_N_SVN found" then
+	-->[true] "Contine Boot 4"
+else
+	-->[false] "Report Error and Halt 4"
+'end
+endif
+
+"Contine Boot 4" --> "extension_N_SVN <= module_N_SVN"
+if "extension_N_SVN <= module_N_SVN" then
+	-->[true] "Load Module N"
+	'-[#black,dashed]->
+else 
+	-->[false] "Report Error and Halt 5"
+'end
+endif
+
+}
+'stop
+@enduml

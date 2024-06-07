@@ -1,0 +1,40 @@
+@startuml multi_line_cache
+
+start
+:BIOS Direct Read Access from IOSF-P;
+if (Hit any cache buffer) then (yes)
+    :Return data form corresponding Buffer;
+else (no)
+    if (Start address 64B aligned) then (yes)
+        :Issue burst read 64B\nto cache buffer;
+    else (no)
+        :Read requested data length\n
+        without buffering;
+    endif
+endif
+:respond completion;
+stop
+
+@enduml
+
+@startuml simplified_pref
+
+start
+:BIOS Direct Read Access from IOSF-P;
+if (Hit any prefetch buffer) then (yes)
+    :Return data form Buffer;
+else (no)
+    if (Start address 64B aligned) then (yes)
+        :Issue burst read 64B\nto prefetch buffer;
+        partition evt {
+            :post event to read next\n64B data chaunk;
+        }
+    else (no)
+        :Read requested data length\n
+        without buffering;
+    endif
+endif
+:respond completion;
+stop
+
+@enduml

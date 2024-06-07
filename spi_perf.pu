@@ -1,0 +1,46 @@
+```plantuml("S3M IBL FW spi performance poc")
+
+@startuml
+title Flash update current
+skinparam componentStyle rectangle
+component erase_data
+component write_data
+component verify_data
+
+[erase_data] -- [write_data]
+[write_data] -- [verify_data]
+@enduml
+
+@startuml
+title Flash update current
+skinparam componentStyle rectangle
+component read_data
+component erase_data
+component write_data
+component verify_data
+
+[read_data] -- [erase_data] : compare data at flash with image to update
+[erase_data] -- [write_data]
+[write_data] -- [verify_data]
+@enduml
+
+@startuml
+title Flash update hash
+skinparam componentStyle rectangle
+component calculate_flash_hashes
+component erase_data
+component write_data
+component verify_data_hash_compare
+[calculate_flash_hashes] -- [erase_data] : compare flash hashes with image hashes
+[erase_data] -- [write_data]
+[write_data] -- [verify_data_hash_compare]
+@enduml
+
+@startuml
+title Flash update chunk compare
+skinparam componentStyle rectangle
+component erase_data
+component write_data_with_compare
+
+[erase_data] -- [write_data_with_compare]
+@enduml

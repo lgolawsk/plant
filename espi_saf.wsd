@@ -1,0 +1,22 @@
+@startuml
+skinparam componentStyle rectangle
+component SOC {
+    component S3M_espi_master_endpoint as s3m1
+}
+
+component PCH {
+    component espi_slave_endpoint as pch1
+    component pch_fabric as pch2
+    component espi_master_endpoint as pch3
+}
+
+component EC {
+    component espi_slave_endpoint as ec1
+}
+
+s3m1 -right-> pch1 : ESPI_BUS_1
+pch1 --> pch2 : IOSF
+pch2 --> pch3 : IOSF
+pch3 --> ec1 : ESPI_BUS_2
+
+@enduml
